@@ -131,6 +131,7 @@ namespace Obfuscar
             PostProcessing();
 
             LogOutput("Done.\n");
+            LogOutput($"Rename counter: {NameMaker.IdxOffset}\n");
 
             LogOutput("Saving assemblies...");
             SaveAssemblies();
@@ -161,6 +162,8 @@ namespace Obfuscar
                 NameMaker.UseUnicodeChars = true;
             if (Project.Settings.UseKoreanNames)
                 NameMaker.UseKoreanChars = true;
+            if (Project.Settings.UseShuffledName)
+                NameMaker.UseShuffledName = true;
 
             LogOutput("Loading assemblies...");
             LogOutput("Extra framework folders: ");

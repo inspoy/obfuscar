@@ -1,0 +1,36 @@
+<?xml version='1.0'?>
+<Obfuscator>
+  <Var name="InPath" value="./input" />
+  <Var name="OutPath" value="./output" />
+
+  <AssemblySearchPath path="C:\Program Files\Unity\Hub\Editor\2019.1.0f2\Editor\Data\Managed\UnityEngine" />
+  <AssemblySearchPath path="C:\Program Files\Unity\Hub\Editor\2019.1.0f2\Editor\Data\Managed" />
+  <AssemblySearchPath path="C:\Program Files\Unity\Hub\Editor\2019.1.0f2\Editor\Data\UnityExtensions\Unity\GUISystem" />
+  <Module file="$(InPath)/Framework.dll" />
+  <Module file="$(InPath)/Game.dll" />
+  
+  <Var name="LogFile" value="$(OutPath)/Mapping.xml" />
+  <Var name="XmlMapping" value="true" />
+  
+  <Var name="RegenerateDebugInfo" value="true" />
+  
+  <Var name="MarkedOnly" value="false" />
+  <Var name="RenameProperties" value="true" />
+  <Var name="RenameEvents" value="true" />
+  <Var name="RenameFields" value="true" />
+  
+  <Var name="KeepPublicApi" value="false" />
+  <Var name="HidePrivateApi" value="true" />
+  
+  <Var name="ReuseNames" value="false" />
+  <Var name="UseUnicodeNames" value="false" />
+  <Var name="UseKoreanNames" value="false" />
+  
+  <Var name="HideStrings" value="false" />
+  <Var name="OptimizeMethods" value="true" />
+  <Var name="SuppressIldasm" value="true" />
+  
+  <!--extend-->
+
+  <Var name="UseShuffledName" value="true" />
+</Obfuscator>
