@@ -44,6 +44,9 @@ namespace Obfuscar
                                     "\u205A\u205B\u205C\u205D\u205E\u205F\u2060" +
                                     "\u2061\u2062\u2063\u2064\u206A\u206B\u206C\u206D\u206E\u206F" +
                                     "\u3000";
+        
+        private const int numCharLib = 6;
+        private const string charLib = "1Il0oO";
 
         private static readonly string koreanChars;
 
@@ -122,6 +125,23 @@ namespace Obfuscar
 
         public static string UniqueName(int index, string sep)
         {
+            var charLib = new char[8]{'1','I','l','0','o','O','i','Q'};
+			const int max = 8*8*8*8*8*8;
+			string result;
+			if (index < max)
+			{
+				result = System.Convert.ToString(index, 8).PadLeft(6,'0');
+				System.Console.Write($"{index} -> {result}");
+				for(var i=charLib.Length-1;i>=0;--i)
+				{
+					result = result.Replace((char)(i+48), charLib[i]);
+				}
+                result = $"_{result}_";
+				System.Console.WriteLine($" -> {result}");
+                return result;
+			}
+            throw new ArgumentOutOfRangeException($"Cannot gen name, idx={index}");
+
             // optimization for simple case
             if (index < numUniqueChars)
                 return uniqueChars[index].ToString();

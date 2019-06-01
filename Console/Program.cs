@@ -124,6 +124,7 @@ namespace Obfuscar
                     Console.Error.WriteLine(e.Message);
                     if (e.InnerException != null)
                         Console.Error.WriteLine(e.InnerException.Message);
+                        Console.Error.WriteLine(e.InnerException.StackTrace);
                     return 1;
                 }
             }
