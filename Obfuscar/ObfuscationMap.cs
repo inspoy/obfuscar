@@ -82,6 +82,8 @@ namespace Obfuscar
         public Dictionary<TypeKey, ObfuscatedClass> ClassMap { get; } = new Dictionary<TypeKey, ObfuscatedClass>();
 
         public List<ObfuscatedThing> Resources { get; } = new List<ObfuscatedThing>();
+        
+        public Dictionary<string, string> HiddenStringLookup { get; } = new Dictionary<string, string>();
 
         public ObfuscatedClass GetClass(TypeKey key)
         {

@@ -46,7 +46,7 @@ namespace Obfuscar
                                     "\u3000";
 
         private const int maxWidth = 6;
-        private const int maxCharLib = 8 * 8 * 8 * 8 * 8 * 8; // 最多六位的组合
+        private const int maxCharLib = 8 * 8 * 8 * 8 * 8 * 8; // 鏈�澶氬叚浣嶇殑缁勫悎
         private const string charLib = "1Ili0oOQ";
         private static List<int> mapCharLib;
         public static int IdxOffset { get; private set; }

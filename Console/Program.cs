@@ -109,7 +109,7 @@ namespace Obfuscar
             {
                 try
                 {
-                    Console.Write("Loading project {0}...", project);
+                    Console.WriteLine("Loading project {0}...", project);
                     Obfuscator obfuscator = new Obfuscator(project);
                     Console.WriteLine("Done.");
 

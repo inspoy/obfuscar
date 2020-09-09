@@ -87,6 +87,15 @@ namespace Obfuscar
                 if (info.Status == ObfuscationStatus.Skipped)
                     writer.WriteLine("{0} ({1})", info.Name, info.StatusText);
             }
+            
+            writer.WriteLine();
+            writer.WriteLine("Hided Strings:");
+            writer.WriteLine();
+
+            foreach (var kv in map.HiddenStringLookup)
+            {
+                writer.WriteLine($"=>{kv.Key}:\n{kv.Value}\n=>END OF {kv.Key}\n");
+            }
         }
 
         private void DumpClass(ObfuscatedClass classInfo)
@@ -516,6 +525,19 @@ namespace Obfuscar
         public void Dispose()
         {
             writer.Close();
+        }
+    }
+
+    class JsonMapWriter : IMapWriter, IDisposable
+    {
+        public void WriteMap(ObfuscationMap map)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Dispose()
+        {
+            throw new NotImplementedException();
         }
     }
 }

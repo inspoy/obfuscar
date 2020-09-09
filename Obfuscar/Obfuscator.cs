@@ -302,7 +302,9 @@ namespace Obfuscar
         /// </summary>
         private void SaveMapping()
         {
-            string filename = Project.Settings.XmlMapping ? "Mapping.xml" : "Mapping.txt";
+            string filename = "Mapping.txt";
+            if (Project.Settings.XmlMapping) filename = "Mapping.xml";
+            if (Project.Settings.JsonMapping) filename = "Mapping.json";
 
             string logPath = Path.Combine(Project.Settings.OutPath, filename);
             if (!String.IsNullOrEmpty(Project.Settings.LogFilePath))
@@ -321,9 +323,19 @@ namespace Obfuscar
         /// </summary>
         private void SaveMapping(TextWriter writer)
         {
-            IMapWriter mapWriter = Project.Settings.XmlMapping
-                ? new XmlMapWriter(writer)
-                : (IMapWriter) new TextMapWriter(writer);
+            IMapWriter mapWriter;
+            if (Project.Settings.XmlMapping)
+            {
+                mapWriter = new XmlMapWriter(writer);
+            }
+            else if (Project.Settings.JsonMapping)
+            {
+                mapWriter = new JsonMapWriter(writer);
+            }
+            else
+            {
+                mapWriter = new TextMapWriter(writer);
+            }
 
             mapWriter.WriteMap(Mapping);
         }
@@ -478,11 +490,12 @@ namespace Obfuscar
                 Project.Settings.HidePrivateApi, Project.Settings.MarkedOnly, out skip))
                 return;
 
+            int index = 0;
             foreach (ParameterDefinition param in method.Parameters)
                 if (param.CustomAttributes.Count == 0)
-                    param.Name = null;
+                    param.Name = NameMaker.UniqueName(index++);
 
-            int index = 0;
+            index = 0;
             foreach (GenericParameter param in method.GenericParameters)
                 if (param.CustomAttributes.Count == 0)
                     param.Name = NameMaker.UniqueName(index++);
@@ -1342,7 +1355,7 @@ namespace Obfuscar
                     // TypeKey typeKey = new TypeKey(type);
                     foreach (MethodDefinition method in type.Methods)
                     {
-                        container.ProcessStrings(method, info, Project);
+                        container.ProcessStrings(method, info, Project, this);
                     }
                 }
 
@@ -1470,45 +1483,46 @@ namespace Obfuscar
                 Method3 = library.MainModule.ImportReference(
                     runtimeHelpers.Methods.FirstOrDefault(method => method.Name == "InitializeArray"));
 
+                var nameIdx = 0;
                 // New static class with a method for each unique string we substitute.
                 NewType = new TypeDefinition(
-                    "<PrivateImplementationDetails>{" + Guid.NewGuid().ToString().ToUpper() + "}",
-                    Guid.NewGuid().ToString().ToUpper(),
+                    NameMaker.UniqueName(++nameIdx),
+                    NameMaker.UniqueName(++nameIdx),
                     TypeAttributes.BeforeFieldInit | TypeAttributes.AutoClass | TypeAttributes.AnsiClass |
                     TypeAttributes.BeforeFieldInit, systemObjectTypeReference);
 
                 // Add struct for constant byte array data
-                StructType = new TypeDefinition("\0", "",
+                StructType = new TypeDefinition(string.Empty, NameMaker.UniqueName(++nameIdx),
                     TypeAttributes.ExplicitLayout | TypeAttributes.AnsiClass | TypeAttributes.Sealed |
                     TypeAttributes.NestedPrivate, systemValueTypeTypeReference);
                 StructType.PackingSize = 1;
                 NewType.NestedTypes.Add(StructType);
 
                 // Add field with constant string data
-                DataConstantField = new FieldDefinition("\0",
+                DataConstantField = new FieldDefinition(NameMaker.UniqueName(++nameIdx),
                     FieldAttributes.HasFieldRVA | FieldAttributes.Private | FieldAttributes.Static |
                     FieldAttributes.Assembly, StructType);
                 NewType.Fields.Add(DataConstantField);
 
                 // Add data field where constructor copies the data to
-                DataField = new FieldDefinition("\0\0",
+                DataField = new FieldDefinition(NameMaker.UniqueName(++nameIdx),
                     FieldAttributes.Private | FieldAttributes.Static | FieldAttributes.Assembly,
                     new ArrayType(SystemByteTypeReference));
                 NewType.Fields.Add(DataField);
 
                 // Add string array of deobfuscated strings
-                StringArrayField = new FieldDefinition("\0\0\0",
+                StringArrayField = new FieldDefinition(NameMaker.UniqueName(++nameIdx),
                     FieldAttributes.Private | FieldAttributes.Static | FieldAttributes.Assembly,
                     new ArrayType(SystemStringTypeReference));
                 NewType.Fields.Add(StringArrayField);
 
                 // Add method to extract a string from the byte array. It is called by the indiviual string getter methods we add later to the class.
-                StringGetterMethodDefinition = new MethodDefinition("\0",
+                StringGetterMethodDefinition = new MethodDefinition(NameMaker.UniqueName(++nameIdx),
                     MethodAttributes.Static | MethodAttributes.Private | MethodAttributes.HideBySig,
                     SystemStringTypeReference);
-                StringGetterMethodDefinition.Parameters.Add(new ParameterDefinition(SystemIntTypeReference));
-                StringGetterMethodDefinition.Parameters.Add(new ParameterDefinition(SystemIntTypeReference));
-                StringGetterMethodDefinition.Parameters.Add(new ParameterDefinition(SystemIntTypeReference));
+                StringGetterMethodDefinition.Parameters.Add(new ParameterDefinition( /*"idx",0,*/SystemIntTypeReference));
+                StringGetterMethodDefinition.Parameters.Add(new ParameterDefinition( /*"offset",0,*/SystemIntTypeReference));
+                StringGetterMethodDefinition.Parameters.Add(new ParameterDefinition( /*"length",0,*/SystemIntTypeReference));
                 StringGetterMethodDefinition.Body.Variables.Add(new VariableDefinition(SystemStringTypeReference));
                 ILProcessor worker3 = StringGetterMethodDefinition.Body.GetILProcessor();
 
@@ -1599,7 +1613,8 @@ namespace Obfuscar
 
             public void ProcessStrings(MethodDefinition method,
                 AssemblyInfo info,
-                Project project)
+                Project project,
+                Obfuscator owner)
             {
                 if (info.ShouldSkipStringHiding(new MethodKey(method), project.InheritMap,
                         project.Settings.HideStrings) || method.Body == null)
@@ -1631,6 +1646,7 @@ namespace Obfuscar
                         if (!_methodByString.TryGetValue(str, out individualStringMethodDefinition))
                         {
                             string methodName = NameMaker.UniqueName(_nameIndex++);
+                            owner.Mapping.HiddenStringLookup[methodName] = str;
 
                             // Add the string to the data array
                             byte[] stringBytes = Encoding.UTF8.GetBytes(str);

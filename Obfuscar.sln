@@ -12,8 +12,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Obfuscar", "Obfuscar\Obfusc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Obfuscar.Console", "Console\Obfuscar.Console.csproj", "{275B3EED-7E70-4460-950F-96EDCA099BD4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ObfuscarTests", "Tests\ObfuscarTests.csproj", "{FD20FE24-37FE-46D0-ADBF-2B54D2874C2A}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{3F7BA0FB-E820-42EE-8D94-7FE576E5325F}"
 	ProjectSection(SolutionItems) = preProject
 		appveyor.yml = appveyor.yml
@@ -95,30 +93,6 @@ Global
 		{275B3EED-7E70-4460-950F-96EDCA099BD4}.winphone_Debug|Any CPU.Build.0 = Debug|Any CPU
 		{275B3EED-7E70-4460-950F-96EDCA099BD4}.winphone_Release|Any CPU.ActiveCfg = Release|Any CPU
 		{275B3EED-7E70-4460-950F-96EDCA099BD4}.winphone_Release|Any CPU.Build.0 = Release|Any CPU
-		{FD20FE24-37FE-46D0-ADBF-2B54D2874C2A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FD20FE24-37FE-46D0-ADBF-2B54D2874C2A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FD20FE24-37FE-46D0-ADBF-2B54D2874C2A}.net_2_0_Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FD20FE24-37FE-46D0-ADBF-2B54D2874C2A}.net_2_0_Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FD20FE24-37FE-46D0-ADBF-2B54D2874C2A}.net_2_0_Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FD20FE24-37FE-46D0-ADBF-2B54D2874C2A}.net_2_0_Release|Any CPU.Build.0 = Release|Any CPU
-		{FD20FE24-37FE-46D0-ADBF-2B54D2874C2A}.net_3_5_Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FD20FE24-37FE-46D0-ADBF-2B54D2874C2A}.net_3_5_Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FD20FE24-37FE-46D0-ADBF-2B54D2874C2A}.net_3_5_Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FD20FE24-37FE-46D0-ADBF-2B54D2874C2A}.net_3_5_Release|Any CPU.Build.0 = Release|Any CPU
-		{FD20FE24-37FE-46D0-ADBF-2B54D2874C2A}.net_4_0_Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FD20FE24-37FE-46D0-ADBF-2B54D2874C2A}.net_4_0_Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FD20FE24-37FE-46D0-ADBF-2B54D2874C2A}.net_4_0_Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FD20FE24-37FE-46D0-ADBF-2B54D2874C2A}.net_4_0_Release|Any CPU.Build.0 = Release|Any CPU
-		{FD20FE24-37FE-46D0-ADBF-2B54D2874C2A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FD20FE24-37FE-46D0-ADBF-2B54D2874C2A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FD20FE24-37FE-46D0-ADBF-2B54D2874C2A}.silverlight_Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FD20FE24-37FE-46D0-ADBF-2B54D2874C2A}.silverlight_Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FD20FE24-37FE-46D0-ADBF-2B54D2874C2A}.silverlight_Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FD20FE24-37FE-46D0-ADBF-2B54D2874C2A}.silverlight_Release|Any CPU.Build.0 = Release|Any CPU
-		{FD20FE24-37FE-46D0-ADBF-2B54D2874C2A}.winphone_Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FD20FE24-37FE-46D0-ADBF-2B54D2874C2A}.winphone_Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FD20FE24-37FE-46D0-ADBF-2B54D2874C2A}.winphone_Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FD20FE24-37FE-46D0-ADBF-2B54D2874C2A}.winphone_Release|Any CPU.Build.0 = Release|Any CPU
 		{BD9CF93A-2CDF-44DF-A0E8-1C7142E0C645}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{BD9CF93A-2CDF-44DF-A0E8-1C7142E0C645}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BD9CF93A-2CDF-44DF-A0E8-1C7142E0C645}.net_2_0_Debug|Any CPU.ActiveCfg = Debug|Any CPU

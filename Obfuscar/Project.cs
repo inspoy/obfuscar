@@ -206,7 +206,7 @@ namespace Obfuscar
                     break;
                 }
 
-                Console.WriteLine("Processing assembly: " + info.Definition.Name.FullName);
+                Console.WriteLine("=> Processing assembly: " + info.Definition.Name.FullName);
                 project.assemblyList.Add(info);
                 project.assemblyMap[info.Name] = info;
             }

@@ -51,6 +51,7 @@ namespace Obfuscar
             SuppressIldasm = XmlConvert.ToBoolean(vars.GetValue("SuppressIldasm", "true"));
 
             XmlMapping = XmlConvert.ToBoolean(vars.GetValue("XmlMapping", "false"));
+            JsonMapping = XmlConvert.ToBoolean(vars.GetValue("JsonMapping", "false"));
             RegenerateDebugInfo = XmlConvert.ToBoolean(vars.GetValue("RegenerateDebugInfo", "false"));
 
             UseShuffledName = XmlConvert.ToBoolean(vars.GetValue("UseShuffledName", "false"));
@@ -85,6 +86,8 @@ namespace Obfuscar
         public bool SuppressIldasm { get; }
 
         public bool XmlMapping { get; }
+        
+        public bool JsonMapping { get; }
 
         public bool UseUnicodeNames { get; }
 
