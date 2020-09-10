@@ -688,7 +688,18 @@ namespace Obfuscar
 
         private void DumpMethod(int tabs, MethodKey key, ObfuscatedThing method, bool isLast)
         {
-            var oldSig = method.Name + "(";
+            var oldSig = $"{key.Method.ReturnType.FullName} {key.Method.FullName}";
+            if (key.Method.GenericParameters.Count > 0)
+            {
+                oldSig += "<";
+                for (var i = 0; i < key.Method.GenericParameters.Count; ++i)
+                {
+                    oldSig += i > 0 ? ", " : "";
+                    oldSig += key.Method.GenericParameters[i].FullName;
+                }
+                oldSig += ">";
+            }
+            oldSig += "(";
             for (var i = 0; i < key.Count; ++i)
             {
                 oldSig += i > 0 ? ", " : "";
@@ -701,17 +712,17 @@ namespace Obfuscar
 
         private void DumpField(int tabs, FieldKey key, ObfuscatedThing field, bool isLast)
         {
-            WriteLine(tabs, $"\"{key.Name}\": \"{field.StatusText}\"{(isLast ? "" : ",")}");
+            WriteLine(tabs, $"\"{key.Type} {key.Name}\": \"{field.StatusText}\"{(isLast ? "" : ",")}");
         }
 
         private void DumpProperty(int tabs, PropertyKey key, ObfuscatedThing property, bool isLast)
         {
-            WriteLine(tabs, $"\"{key.Name}\": \"{property.StatusText}\"{(isLast ? "" : ",")}");
+            WriteLine(tabs, $"\"{key.Type} {key.Name}\": \"{property.StatusText}\"{(isLast ? "" : ",")}");
         }
 
         private void DumpEvent(int tabs, EventKey key, ObfuscatedThing @event, bool isLast)
         {
-            WriteLine(tabs, $"\"{key.Name}\": \"{@event.StatusText}\"{(isLast ? "" : ",")}");
+            WriteLine(tabs, $"\"{key.Type} {key.Name}\": \"{@event.StatusText}\"{(isLast ? "" : ",")}");
         }
 
         private void WriteLine(int indent, string content)
