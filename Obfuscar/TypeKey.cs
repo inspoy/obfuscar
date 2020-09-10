@@ -42,15 +42,20 @@ namespace Obfuscar
 
             this.Name = string.IsNullOrEmpty(type.Namespace) ? type.Name : type.Namespace + "." + type.Name;
             TypeReference declaringType = type;
+            var nested = false;
             // Build path to nested type
             while (declaringType.DeclaringType != null)
             {
                 declaringType = declaringType.DeclaringType;
-                this.Name = declaringType.Name + "/" + Name;
+                var parentName = declaringType.DeclaringType != null
+                    ? (!string.IsNullOrEmpty(declaringType.Namespace) ? declaringType.Namespace + "." : "") + declaringType.Name
+                    : declaringType.Name;
+                this.Name = parentName + "/" + Name;
+                nested = true;
             }
             this.Namespace = declaringType.Namespace;
 
-            this.Fullname = !string.IsNullOrEmpty(this.Namespace) && Namespace != type.Namespace ? this.Namespace + "." + Name : Name;
+            this.Fullname = !string.IsNullOrEmpty(this.Namespace) && (nested || Namespace != type.Namespace) ? this.Namespace + "." + Name : Name;
 
             // Our name should be the same as the Cecil's name. This is important to the Match method.
             GenericInstanceType gi = type as GenericInstanceType;
