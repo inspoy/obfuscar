@@ -30,6 +30,7 @@ using System.Text;
 using System.IO;
 using System.Xml;
 using System.Diagnostics;
+using System.Linq;
 
 namespace Obfuscar
 {
@@ -87,7 +88,7 @@ namespace Obfuscar
                 if (info.Status == ObfuscationStatus.Skipped)
                     writer.WriteLine("{0} ({1})", info.Name, info.StatusText);
             }
-            
+
             writer.WriteLine();
             writer.WriteLine("Hided Strings:");
             writer.WriteLine();
@@ -530,14 +531,198 @@ namespace Obfuscar
 
     class JsonMapWriter : IMapWriter, IDisposable
     {
+        private TextWriter _writer;
+
+        public JsonMapWriter(TextWriter writer)
+        {
+            _writer = writer;
+        }
+
         public void WriteMap(ObfuscationMap map)
         {
-            throw new NotImplementedException();
+            WriteLine(0, "{");
+
+            #region Classes
+
+            WriteLine(1, "\"Renamed Types\": {");
+            var items = map.ClassMap.Values.Where(el => el.Status == ObfuscationStatus.Renamed).ToArray();
+            for (var i = 0; i < items.Length; i++)
+            {
+                var cls = items[i];
+                DumpClass(2, cls, i == items.Length - 1);
+            }
+            WriteLine(1, "},");
+            WriteLine(1, "\"Skipped Types\": {");
+            items = map.ClassMap.Values.Where(el => el.Status == ObfuscationStatus.Skipped).ToArray();
+            for (var i = 0; i < items.Length; i++)
+            {
+                var cls = items[i];
+                DumpClass(2, cls, i == items.Length - 1);
+            }
+            WriteLine(1, "},");
+
+            #endregion
+
+            #region Resources
+
+            // TODO
+
+            #endregion
+
+            #region Strings
+
+            WriteLine(1, "\"Hided Strings\": {");
+            var keys = map.HiddenStringLookup.Keys.ToArray();
+            for (var i = 0; i < keys.Length; i++)
+            {
+                var key = keys[i];
+                var val = map.HiddenStringLookup[key];
+                val = val
+                    .Replace("\"", "\\\"")
+                    .Replace("\r\n", "\\n")
+                    .Replace("\n", "\\n");
+                WriteLine(2, $"\"{key}\": \"{val}\"{(i == keys.Length - 1 ? "" : ",")}");
+            }
+            WriteLine(1, "}");
+
+            #endregion
+
+            WriteLine(0, "}");
         }
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            _writer.Dispose();
+        }
+
+        private void DumpClass(int tabs, ObfuscatedClass cls, bool isLast = false)
+        {
+            WriteLine(tabs, $"\"{cls.Name}\": {{");
+            if (cls.Status == ObfuscationStatus.Renamed)
+            {
+                WriteLine(tabs + 1, $"\"NewName\": \"{cls.StatusText}\",");
+            }
+            else
+            {
+                WriteLine(tabs + 1, $"\"Reason\": \"{cls.StatusText}\",");
+            }
+
+            #region Methods
+
+            WriteLine(tabs + 1, "\"Methods\": {");
+            var methods = cls.Methods.Where(el => el.Value.Status == ObfuscationStatus.Renamed).ToArray();
+            for (var i = 0; i < methods.Length; i++)
+            {
+                var item = methods[i];
+                DumpMethod(tabs + 2, item.Key, item.Value, i == methods.Length - 1 && methods.Length == cls.Methods.Count);
+            }
+            methods = cls.Methods.Where(el => el.Value.Status == ObfuscationStatus.Skipped).ToArray();
+            for (var i = 0; i < methods.Length; i++)
+            {
+                var item = methods[i];
+                DumpMethod(tabs + 2, item.Key, item.Value, i == methods.Length - 1);
+            }
+            WriteLine(tabs + 1, "},");
+
+            #endregion
+
+            #region Fields
+
+            WriteLine(tabs + 1, "\"Fields\": {");
+            var fields = cls.Fields.Where(el => el.Value.Status == ObfuscationStatus.Renamed).ToArray();
+            for (var i = 0; i < fields.Length; i++)
+            {
+                var item = fields[i];
+                DumpField(tabs + 2, item.Key, item.Value, i == fields.Length - 1 && fields.Length == cls.Fields.Count);
+            }
+            fields = cls.Fields.Where(el => el.Value.Status == ObfuscationStatus.Skipped).ToArray();
+            for (var i = 0; i < fields.Length; i++)
+            {
+                var item = fields[i];
+                DumpField(tabs + 2, item.Key, item.Value, i == fields.Length - 1);
+            }
+            WriteLine(tabs + 1, "},");
+
+            #endregion
+
+            #region Properties
+
+            WriteLine(tabs + 1, "\"Properties\": {");
+            var props = cls.Properties.Where(el => el.Value.Status == ObfuscationStatus.Renamed).ToArray();
+            for (var i = 0; i < props.Length; i++)
+            {
+                var item = props[i];
+                DumpProperty(tabs + 2, item.Key, item.Value, i == props.Length - 1 && props.Length == cls.Properties.Count);
+            }
+            props = cls.Properties.Where(el => el.Value.Status == ObfuscationStatus.Skipped).ToArray();
+            for (var i = 0; i < props.Length; i++)
+            {
+                var item = props[i];
+                DumpProperty(tabs + 2, item.Key, item.Value, i == props.Length - 1);
+            }
+            WriteLine(tabs + 1, "},");
+
+            #endregion
+
+            #region Events
+
+            WriteLine(tabs + 1, "\"Events\": {");
+            var events = cls.Events.Where(el => el.Value.Status == ObfuscationStatus.Renamed).ToArray();
+            for (var i = 0; i < events.Length; i++)
+            {
+                var item = events[i];
+                DumpEvent(tabs + 2, item.Key, item.Value, i == events.Length - 1 && events.Length == cls.Events.Count);
+            }
+            events = cls.Events.Where(el => el.Value.Status == ObfuscationStatus.Skipped).ToArray();
+            for (var i = 0; i < events.Length; i++)
+            {
+                var item = events[i];
+                DumpEvent(tabs + 2, item.Key, item.Value, i == events.Length - 1);
+            }
+            WriteLine(tabs + 1, "}");
+
+            #endregion
+
+            WriteLine(tabs, isLast ? "}" : "},");
+        }
+
+        private void DumpMethod(int tabs, MethodKey key, ObfuscatedThing method, bool isLast)
+        {
+            var oldSig = method.Name + "(";
+            for (var i = 0; i < key.Count; ++i)
+            {
+                oldSig += i > 0 ? ", " : "";
+                oldSig += key.ParamTypes[i];
+            }
+            oldSig += ")";
+            var newSig = method.StatusText;
+            WriteLine(tabs, $"\"{oldSig}\": \"{newSig}\"{(isLast ? "" : ",")}");
+        }
+
+        private void DumpField(int tabs, FieldKey key, ObfuscatedThing field, bool isLast)
+        {
+            WriteLine(tabs, $"\"{key.Name}\": \"{field.StatusText}\"{(isLast ? "" : ",")}");
+        }
+
+        private void DumpProperty(int tabs, PropertyKey key, ObfuscatedThing property, bool isLast)
+        {
+            WriteLine(tabs, $"\"{key.Name}\": \"{property.StatusText}\"{(isLast ? "" : ",")}");
+        }
+
+        private void DumpEvent(int tabs, EventKey key, ObfuscatedThing @event, bool isLast)
+        {
+            WriteLine(tabs, $"\"{key.Name}\": \"{@event.StatusText}\"{(isLast ? "" : ",")}");
+        }
+
+        private void WriteLine(int indent, string content)
+        {
+            _writer.Write(Indent(indent));
+            _writer.WriteLine(content);
+        }
+
+        private static string Indent(int depth)
+        {
+            return new string(' ', depth * 2);
         }
     }
 }
