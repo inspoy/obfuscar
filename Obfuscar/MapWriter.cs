@@ -31,6 +31,7 @@ using System.IO;
 using System.Xml;
 using System.Diagnostics;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace Obfuscar
 {
@@ -532,6 +533,9 @@ namespace Obfuscar
     class JsonMapWriter : IMapWriter, IDisposable
     {
         private TextWriter _writer;
+        private ObfuscationMap _map;
+        private Dictionary<string, string> _rawNames;
+        private readonly Regex _scopeRx = new Regex(@"^[\w+]"); // matches scope prefix
 
         public JsonMapWriter(TextWriter writer)
         {
@@ -540,6 +544,7 @@ namespace Obfuscar
 
         public void WriteMap(ObfuscationMap map)
         {
+            _map = map;
             WriteLine(0, "{");
 
             #region Classes
@@ -578,6 +583,7 @@ namespace Obfuscar
                 var key = keys[i];
                 var val = map.HiddenStringLookup[key];
                 val = val
+                    .Replace("\\", "\\\\")
                     .Replace("\"", "\\\"")
                     .Replace("\r\n", "\\n")
                     .Replace("\n", "\\n");
@@ -588,6 +594,7 @@ namespace Obfuscar
             #endregion
 
             WriteLine(0, "}");
+            _map = null;
         }
 
         public void Dispose()
@@ -597,6 +604,7 @@ namespace Obfuscar
 
         private void DumpClass(int tabs, ObfuscatedClass cls, bool isLast = false)
         {
+            var typeKey = _map.ClassMap.FirstOrDefault(el => el.Value == cls).Key;
             WriteLine(tabs, $"\"{cls.Name}\": {{");
             if (cls.Status == ObfuscationStatus.Renamed)
             {
@@ -606,6 +614,15 @@ namespace Obfuscar
             {
                 WriteLine(tabs + 1, $"\"Reason\": \"{cls.StatusText}\",");
             }
+            var genericParams = typeKey.TypeDefinition.GenericParameters;
+            WriteLine(tabs + 1, "\"GenericParams\": [");
+            for (var i = 0; i < genericParams.Count; i++)
+            {
+                var item = genericParams[i];
+                WriteLine(tabs + 2, '"' + GetRawTypeName(item.FullName) + '"' + (i == genericParams.Count - 1 ? "" : ","));
+            }
+            WriteLine(tabs + 1, "],");
+
 
             #region Methods
 
@@ -688,14 +705,14 @@ namespace Obfuscar
 
         private void DumpMethod(int tabs, MethodKey key, ObfuscatedThing method, bool isLast)
         {
-            var oldSig = $"{key.Method.ReturnType.FullName} {key.Method.FullName}";
+            var oldSig = $"{GetRawTypeName(key.Method.ReturnType.FullName)} {method.Name}";
             if (key.Method.GenericParameters.Count > 0)
             {
                 oldSig += "<";
                 for (var i = 0; i < key.Method.GenericParameters.Count; ++i)
                 {
                     oldSig += i > 0 ? ", " : "";
-                    oldSig += key.Method.GenericParameters[i].FullName;
+                    oldSig += GetRawTypeName(key.Method.GenericParameters[i].FullName);
                 }
                 oldSig += ">";
             }
@@ -703,7 +720,7 @@ namespace Obfuscar
             for (var i = 0; i < key.Count; ++i)
             {
                 oldSig += i > 0 ? ", " : "";
-                oldSig += key.ParamTypes[i];
+                oldSig += GetRawTypeName(key.ParamTypes[i]);
             }
             oldSig += ")";
             var newSig = method.StatusText;
@@ -712,17 +729,17 @@ namespace Obfuscar
 
         private void DumpField(int tabs, FieldKey key, ObfuscatedThing field, bool isLast)
         {
-            WriteLine(tabs, $"\"{key.Type} {key.Name}\": \"{field.StatusText}\"{(isLast ? "" : ",")}");
+            WriteLine(tabs, $"\"{GetRawTypeName(key.TypeKey)} {key.Name}\": \"{field.StatusText}\"{(isLast ? "" : ",")}");
         }
 
         private void DumpProperty(int tabs, PropertyKey key, ObfuscatedThing property, bool isLast)
         {
-            WriteLine(tabs, $"\"{key.Type} {key.Name}\": \"{property.StatusText}\"{(isLast ? "" : ",")}");
+            WriteLine(tabs, $"\"{GetRawTypeName(key.TypeKey)} {key.Name}\": \"{property.StatusText}\"{(isLast ? "" : ",")}");
         }
 
         private void DumpEvent(int tabs, EventKey key, ObfuscatedThing @event, bool isLast)
         {
-            WriteLine(tabs, $"\"{key.Type} {key.Name}\": \"{@event.StatusText}\"{(isLast ? "" : ",")}");
+            WriteLine(tabs, $"\"{GetRawTypeName(key.TypeKey)} {key.Name}\": \"{@event.StatusText}\"{(isLast ? "" : ",")}");
         }
 
         private void WriteLine(int indent, string content)
@@ -734,6 +751,32 @@ namespace Obfuscar
         private static string Indent(int depth)
         {
             return new string(' ', depth * 2);
+        }
+
+        private string GetRawTypeName(string obfuscatedName)
+        {
+            if (_rawNames == null)
+            {
+                _rawNames = new Dictionary<string, string>();
+                foreach (var cls in _map.ClassMap.Values)
+                {
+                    if (cls.Status == ObfuscationStatus.Renamed && !string.IsNullOrEmpty(cls.StatusText))
+                    {
+                        _rawNames[_scopeRx.Replace(cls.StatusText, "", 1)] = _scopeRx.Replace(cls.Name, "", 1);
+                    }
+                }
+            }
+            if (_rawNames.TryGetValue(_scopeRx.Replace(obfuscatedName, "", 1), out var rawName))
+            {
+                return rawName;
+            }
+            return obfuscatedName;
+        }
+
+        private string GetRawTypeName(TypeKey key)
+        {
+            var cls = _map.GetClass(key);
+            return cls.Name;
         }
     }
 }
